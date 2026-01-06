@@ -1,0 +1,9 @@
+requests
+websockets
+pandas
+numpy
+python-dotenv
+ta
+flask
+supabase
+gunicorn

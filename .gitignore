@@ -1,0 +1,28 @@
+# Environments
+.env
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# Logs
+*.log
+log.txt
+output_log.txt
+
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/
+~$*
+Thumbs.db

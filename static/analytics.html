@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.65">
+    <title>Analytics - AlgoBot</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="static/dashboard.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <div class="logo" style="margin-bottom: 0;">
+                <i class="fa-solid fa-robot brand-icon"></i> <span class="brand-name">AlgoBot</span>
+            </div>
+            <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- SIDEBAR -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-robot brand-icon"></i>
+                <span class="brand-name">AlgoBot <span class="badge">PRO</span></span>
+            </div>
+            <div class="sidebar-nav">
+                <a href="/dashboard" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="/settings" class="nav-item"><i class="fa-solid fa-sliders"></i> Settings</a>
+                <a href="/analytics" class="nav-item active"><i class="fa-solid fa-chart-area"></i> Analytics</a>
+                <a href="/dashboard" class="nav-item" onclick="localStorage.setItem('navTarget', 'logs-section')"><i
+                        class="fa-solid fa-file-invoice"></i> Logs</a>
+                <a href="#" class="nav-item" onclick="showToast('Alerts coming soon', 'info')"><i
+                        class="fa-solid fa-bell"></i> Alerts</a>
+                <a href="/logout" class="nav-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="dot online"></span> System Online
+                </div>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- TOP BAR -->
+            <header class="top-bar">
+                <h1 class="page-title">Performance Analytics</h1>
+                <div class="top-actions">
+                    <button class="btn btn-icon" onclick="snapshotBalance()" title="Log Current Balance"><i
+                            class="fa-solid fa-camera"></i></button>
+                    <button class="btn btn-icon" onclick="loadAnalytics()"><i
+                            class="fa-solid fa-rotate-right"></i></button>
+                </div>
+            </header>
+
+            <div class="analytics-grid"
+                style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 2rem;">
+
+                <!-- PNL CHART CARD -->
+                <div class="card" style="min-height: 400px; padding: 1.5rem;">
+                    <div class="card-header" style="justify-content: space-between; margin-bottom: 1rem;">
+                        <h3><i class="fa-solid fa-chart-simple"></i> Equity Curve (USDT)</h3>
+                        <div class="card-actions">
+                            <span class="status-badge live">LIVE</span>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="position: relative; height: 350px; width: 100%;">
+                        <canvas id="pnlChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- STATS ROW -->
+                <div class="stats-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="stat-card">
+                        <span class="stat-label">Current Balance</span>
+                        <div class="stat-value" id="curr-balance">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">All Time High</span>
+                        <div class="stat-value" id="ath-balance">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Total Logs</span>
+                        <div class="stat-value" id="total-logs">--</div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let chartInstance = null;
+
+        async function loadAnalytics() {
+            try {
+                const res = await fetch('/api/analytics?limit=100');
+                if (res.status === 401) window.location.href = '/login';
+                const data = await res.json();
+
+                renderChart(data);
+                updateStats(data);
+            } catch (e) {
+                console.error("Failed to load analytics", e);
+            }
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('pnlChart').getContext('2d');
+
+            // Prepare Data
+            const labels = data.map(d => new Date(d.created_at).toLocaleTimeString());
+            const values = data.map(d => parseFloat(d.total_balance));
+
+            if (chartInstance) chartInstance.destroy();
+
+            // Gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); // Primary color
+            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Portfolio Value (USDT)',
+                        data: values,
+                        borderColor: '#3b82f6',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#cbd5e1',
+                            borderColor: '#374151',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { color: '#64748b', maxTicksLimit: 8 }
+                        },
+                        y: {
+                            grid: { color: '#2d3748', borderDash: [5, 5] },
+                            ticks: { color: '#64748b' }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        function updateStats(data) {
+            if (!data || data.length === 0) return;
+            const latest = parseFloat(data[data.length - 1].total_balance);
+            const max = Math.max(...data.map(d => parseFloat(d.total_balance)));
+
+            document.getElementById('curr-balance').innerText = `$${latest.toFixed(2)}`;
+            document.getElementById('ath-balance').innerText = `$${max.toFixed(2)}`;
+            document.getElementById('total-logs').innerText = data.length;
+        }
+
+        async function snapshotBalance() {
+            const btn = document.querySelector("button[title='Log Current Balance']");
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            try {
+                await fetch('/api/snapshot_balance', { method: 'POST' });
+                await loadAnalytics();
+            } catch (e) {
+                console.error(e);
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-camera"></i>';
+            }
+        }
+
+        function logout() {
+            window.location.href = '/logout';
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', loadAnalytics);
+    </script>
+</body>
+
+</html>

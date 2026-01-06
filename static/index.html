@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoBot - System Status</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/dashboard.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at top right, #1e293b 0%, #0b0e14 100%);
+        }
+
+        .landing-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 1rem;
+            padding: 3rem;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: var(--shadow-2xl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .landing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .brand-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.5));
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        p.subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2.5rem;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .status-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-value {
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-launch {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-launch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .loader {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+</head>
+
+<body>
+
+    <div class="landing-card">
+        <i class="fa-solid fa-robot brand-icon"></i>
+        <h1>AlgoBot <span
+                style="font-size: 1rem; vertical-align: super; background: rgba(59,130,246,0.2); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--primary);">PRO</span>
+        </h1>
+        <p class="subtitle">Automated High-Frequency Trading System</p>
+
+        <div class="status-grid">
+            <div class="status-item">
+                <span class="status-label">System Status</span>
+                <span class="status-value" id="sys-status">
+                    <div class="loader"></div>
+                </span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Trading Mode</span>
+                <span class="status-value" id="sys-mode">
+                    <div class="loader"></div>
+                </span>
+            </div>
+        </div>
+
+        <a href="/dashboard" class="btn-launch">
+            <i class="fa-solid fa-gauge-high"></i> Open Dashboard
+        </a>
+    </div>
+
+    <script>
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/health');
+                const data = await res.json();
+
+                const statusEl = document.getElementById('sys-status');
+                const modeEl = document.getElementById('sys-mode');
+
+                statusEl.innerHTML = data.status === "Active"
+                    ? '<span style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> Active</span>'
+                    : '<span style="color: var(--warning);"><i class="fa-solid fa-pause"></i> Paused</span>';
+
+                modeEl.innerHTML = data.mode === "Live"
+                    ? '<span style="color: var(--danger);"><i class="fa-solid fa-bolt"></i> Live</span>'
+                    : '<span style="color: var(--text-secondary);"><i class="fa-solid fa-flask"></i> Dry Run</span>';
+
+            } catch (e) {
+                console.error("Health check failed", e);
+                document.getElementById('sys-status').innerText = "Offline";
+            }
+        }
+
+        fetchStatus();
+    </script>
+</body>
+
+</html>

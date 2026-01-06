@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.65">
+    <title>Advanced Settings - AlgoBot</title>
+    <!-- Fonts & Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/dashboard.css">
+    <style>
+        /* Specific page overrides specific to Settings */
+        .settings-container {
+            max-width: 900px;
+            margin: 0;
+        }
+
+        .instruction-card {
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px dashed rgba(59, 130, 246, 0.3);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .instruction-icon {
+            color: var(--primary);
+            font-size: 1.25rem;
+            margin-top: 0.2rem;
+        }
+
+        .instruction-text h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+        }
+
+        .instruction-text p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .instruction-text a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .field-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+        }
+
+        .api-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+        }
+
+        .api-status.connected {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <div class="logo" style="margin-bottom: 0;">
+                <i class="fa-solid fa-robot brand-icon"></i> <span class="brand-name">AlgoBot</span>
+            </div>
+            <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-robot brand-icon"></i> <span class="brand-name">AlgoBot</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="/settings" class="nav-item active"><i class="fa-solid fa-sliders"></i> Settings</a>
+                <a href="/analytics" class="nav-item"><i class="fa-solid fa-chart-area"></i> Analytics</a>
+                <a href="/dashboard" class="nav-item" onclick="localStorage.setItem('navTarget', 'logs-section')"><i
+                        class="fa-solid fa-file-invoice"></i> Logs</a>
+                <a href="#" class="nav-item" onclick="showToast('Alerts coming soon', 'info')"><i
+                        class="fa-solid fa-bell"></i> Alerts</a>
+                <a href="/logout" class="nav-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            </nav>
+            <div class="user-profile">
+                <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                <div class="user-details">
+                    <span class="username">Admin User</span>
+                    <span class="status-indicator"><span class="dot online"></span> Online</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="breadcrumb">
+                    <h1>Settings</h1>
+                    <span class="path">System Configuration & Integrations</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn primary-btn" onclick="saveSettings()">
+                        <i class="fa-solid fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="settings-container">
+
+                    <!-- Notification Channel Card -->
+                    <div class="card config-card">
+                        <div class="card-header" style="justify-content: space-between;">
+                            <h2><i class="fa-brands fa-telegram"></i> Telegram Integration</h2>
+                            <span class="api-status" id="tg-status-badge"><i class="fa-solid fa-circle-notch"></i>
+                                Checking...</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="instruction-card">
+                                <div class="instruction-icon"><i class="fa-solid fa-circle-info"></i></div>
+                                <div class="instruction-text">
+                                    <h4>How to Connect</h4>
+                                    <p>
+                                        1. Create a bot using <a href="https://t.me/BotFather"
+                                            target="_blank">@BotFather</a> and copy the <b>HTTP API Token</b>.<br>
+                                        2. Get your numeric <b>Chat ID</b> from <a href="https://t.me/userinfobot"
+                                            target="_blank">@userinfobot</a>.<br>
+                                        3. <b style="color: var(--warning);">Important:</b> Send <code>/start</code> to
+                                        your bot on Telegram first!<br>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <form id="settings-form" onsubmit="return false;">
+                                <div class="form-row">
+                                    <div class="form-group" style="flex: 2;">
+                                        <label for="tg_token">Bot Token</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-key"></i>
+                                            <input id="tg_token" type="password" placeholder="123456789:AAHr..."
+                                                style="font-family: 'JetBrains Mono', monospace;" />
+                                        </div>
+                                        <p class="field-desc">The unique authentication token provided by BotFather</p>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="tg_chat">Chat ID</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-hashtag"></i>
+                                            <input id="tg_chat" type="text" placeholder="-100..."
+                                                style="font-family: 'JetBrains Mono', monospace;" />
+                                        </div>
+                                        <p class="field-desc">Your personal or group Chat ID</p>
+                                    </div>
+                                </div>
+
+                                <div class="toggles-container"
+                                    style="display:flex; align-items:center; gap: 1rem; margin-top: 1.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem;">
+                                    <div class="toggle-wrapper" style="border:none; margin:0; padding:0; flex:1;">
+                                        <div class="toggle-label">
+                                            <span>Enable Alerts</span>
+                                            <small>Send notifications for trades</small>
+                                        </div>
+                                        <label class="switch">
+                                            <input id="enable_notif" type="checkbox">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                    <div style="flex:1; display:flex; justify-content:flex-end; gap:0.5rem;">
+                                        <button class="btn"
+                                            style="background:rgba(255,255,255,0.05); border:1px solid var(--border-subtle);"
+                                            onclick="testNotification()">
+                                            <i class="fa-solid fa-paper-plane"></i> Test
+                                        </button>
+                                        <button class="btn primary-btn" onclick="saveSettings()">
+                                            <i class="fa-solid fa-floppy-disk"></i> Save
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Security Card -->
+                    <div class="card config-card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-lock"></i> Account Security</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="curr_pass">Current Password</label>
+                                    <div class="input-with-icon">
+                                        <i class="fa-solid fa-lock"></i>
+                                        <input id="curr_pass" type="password" placeholder="••••••••">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new_pass">New Password</label>
+                                    <div class="input-with-icon">
+                                        <i class="fa-solid fa-key"></i>
+                                        <input id="new_pass" type="password" placeholder="••••••••">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-actions"
+                                style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                                <button class="btn primary-btn" onclick="updatePassword()">
+                                    <i class="fa-solid fa-check"></i> Update Password
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Protocols Card -->
+                    <div class="card config-card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-shield-halved"></i> Active Risk Protocols</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="instruction-card"
+                                style="background: rgba(46, 204, 113, 0.1); border-left: 4px solid var(--success);">
+                                <div class="instruction-text">
+                                    <h4 style="color: var(--success); margin-bottom: 0.5rem;">System Safeguards Active
+                                    </h4>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;">
+                                        Your capital is protected by <b>Hard-Coded Execution Gates</b> designed to
+                                        prevent algorithmic runaway errors. These rules run locally before any order is
+                                        sent to the exchange.
+                                    </p>
+                                    <ul style="margin-top: 1rem; list-style: none; padding: 0;">
+                                        <li
+                                            style="margin-bottom: 0.8rem; display: flex; align-items: start; gap: 0.8rem;">
+                                            <i class="fa-solid fa-ban"
+                                                style="color: var(--warning); margin-top: 4px;"></i>
+                                            <div>
+                                                <strong style="color: var(--text-bright);">Anti-Duplicate
+                                                    Protection</strong><br>
+                                                <span style="font-size: 0.85rem; opacity: 0.8;">Blocks identical signals
+                                                    received within 5 seconds to prevent accidental double-entries from
+                                                    TradingView misfires.</span>
+                                            </div>
+                                        </li>
+                                        <li
+                                            style="margin-bottom: 0.8rem; display: flex; align-items: start; gap: 0.8rem;">
+                                            <i class="fa-solid fa-hand-paper"
+                                                style="color: var(--warning); margin-top: 4px;"></i>
+                                            <div>
+                                                <strong style="color: var(--text-bright);">Daily Execution
+                                                    Cap</strong><br>
+                                                <span style="font-size: 0.85rem; opacity: 0.8;">Hard limit of <b>50 LIVE
+                                                        trades</b> per day. This acts as a circuit breaker if a strategy
+                                                    behaves erratically.</span>
+                                            </div>
+                                        </li>
+                                        <li style="display: flex; align-items: start; gap: 0.8rem;">
+                                            <i class="fa-solid fa-power-off"
+                                                style="color: var(--danger); margin-top: 4px;"></i>
+                                            <div>
+                                                <strong style="color: var(--text-bright);">Global Kill
+                                                    Switch</strong><br>
+                                                <span style="font-size: 0.85rem; opacity: 0.8;">Disabling "Enable
+                                                    Trading" in the dashboard instantly cuts the connection between your
+                                                    strategy and Bitget.</span>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Future Settings -->
+                    <div class="card config-card" style="margin-top: 2rem; opacity: 0.7;">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-envelope"></i> Email Alerts (Coming Soon)</h2>
+                        </div>
+                        <div class="card-body">
+                            <p style="color: var(--text-muted); font-style: italic;">SMTP configuration settings will
+                                appear here...</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="/static/settings.js"></script>
+</body>
+
+</html>

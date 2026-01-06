@@ -1,0 +1,19 @@
+--- Single Order Execution ---
+Symbol: BTCUSDT
+Side:   open_long
+Size:   0.001
+Margin: crossed
+Dry Run: False
+------------------------------
+DEBUG: Sending Body: {
+  "symbol": "BTCUSDT",
+  "productType": "USDT-FUTURES",
+  "marginCoin": "USDT",
+  "orderType": "market",
+  "side": "buy",
+  "size": "0.001",
+  "tradeSide": "open",
+  "marginMode": "crossed"
+}
+API Response: {'code': '40762', 'msg': 'The order amount exceeds the balance', 'requestTime': 1766147625849, 'data': None}
+Order placement FAILED. Response: {'code': '40762', 'msg': 'The order amount exceeds the balance', 'requestTime': 1766147625849, 'data': None}

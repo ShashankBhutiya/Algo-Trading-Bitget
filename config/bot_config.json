@@ -1,0 +1,9 @@
+{
+    "symbol": "ETHUSDT",
+    "product_type": "SPOT",
+    "buy_size_usdt": 5.0,
+    "sell_size": "ALL",
+    "leverage": 5,
+    "enable_trading": true,
+    "dry_run": false
+}

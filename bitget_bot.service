@@ -1,0 +1,25 @@
+[Unit]
+Description=Bitget Algo Trading Bot Service
+After=network.target
+
+[Service]
+# User running the script. Change 'root' if you use a different user (e.g. ubuntu)
+User=root
+# Set working directory to where you uploaded the files
+WorkingDirectory=/root/bitget_bot
+# Command to run the supervisor script
+ExecStart=/usr/bin/python3 run_bot.py
+# Environment variables (Optional, better to use .env file)
+# EnvironmentFile=/root/bitget_bot/.env
+
+# Restart configurations
+Restart=always
+RestartSec=5
+StartLimitInterval=0
+
+# Output logging (handled by run_bot.py, but systemd captures stdout too)
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

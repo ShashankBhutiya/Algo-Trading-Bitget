@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.65">
+    <title>Algo Trading Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Mobile Header (Visible only on small screens) -->
+        <div class="mobile-header">
+            <div class="logo" style="margin-bottom: 0;">
+                <i class="fa-solid fa-robot brand-icon"></i> <span class="brand-name">AlgoBot</span>
+            </div>
+            <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-robot brand-icon"></i> <span class="brand-name">AlgoBot</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-target="overview-section"><i
+                        class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="/settings" class="nav-item"><i class="fa-solid fa-sliders"></i>
+                    Settings</a>
+                <a href="/analytics" class="nav-item"><i class="fa-solid fa-chart-area"></i>
+                    Analytics</a>
+                <a href="#" class="nav-item" data-target="logs-section"><i class="fa-solid fa-file-invoice"></i>
+                    Logs</a>
+                <a href="#" class="nav-item" onclick="showToast('Alerts module coming soon!', 'info')"><i
+                        class="fa-solid fa-bell"></i> Alerts</a>
+                <a href="/logout" class="nav-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            </nav>
+            <div class="user-profile">
+                <div class="avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <span class="username">Admin User</span>
+                    <span class="status-indicator"><span class="dot online"></span> Online</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="breadcrumb">
+                    <h1>Dashboard</h1>
+                    <span class="path">Overview & Statistics</span>
+                </div>
+                <div class="header-actions">
+                    <button id="refresh-btn" class="icon-btn" title="Refresh Data"><i
+                            class="fa-solid fa-arrows-rotate"></i></button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Status Cards (Required for JS disp-status etc) -->
+                <div class="stats-grid" id="overview-section">
+                    <div class="card stat-card gradient-1">
+                        <div class="stat-icon"><i class="fa-solid fa-signal"></i></div>
+                        <div class="stat-info">
+                            <h3>Trading Status</h3>
+                            <p id="disp-status" class="value">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card gradient-2">
+                        <div class="stat-icon"><i class="fa-solid fa-flask"></i></div>
+                        <div class="stat-info">
+                            <h3>Execution Mode</h3>
+                            <p id="disp-mode" class="value">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card gradient-3">
+                        <div class="stat-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                        <div class="stat-info">
+                            <h3>Active Symbol</h3>
+                            <p id="disp-symbol" class="value">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card gradient-4">
+                        <div class="stat-icon"><i class="fa-solid fa-wallet"></i></div>
+                        <div class="stat-info">
+                            <h3>Est. Balance</h3>
+                            <p class="value">$ --</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Layout -->
+                <div class="dashboard-grid">
+
+                    <!-- LEFT COLUMN: Chart & Market Context -->
+                    <div class="col-left">
+                        <!-- TradingView Chart -->
+                        <div class="card chart-card">
+                            <div class="card-header">
+                                <h2><i class="fa-solid fa-chart-candlestick"></i> Market Overview</h2>
+                            </div>
+                            <div class="card-body" style="padding: 0; height: 500px;">
+                                <!-- TV Widget Container -->
+                                <div id="tv-chart-container" style="height: 100%; width: 100%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Manual Controls -->
+                        <div class="card manual-card" style="margin-top: 1.5rem;">
+                            <div class="card-header">
+                                <h2><i class="fa-solid fa-gamepad"></i> Manual Override</h2>
+                            </div>
+                            <div class="card-body actions-panel">
+                                <div class="action-group">
+                                    <button class="btn action-btn buy" onclick="manualTrade('buy')">
+                                        <i class="fa-solid fa-arrow-trend-up"></i> FORCE BUY / LONG
+                                    </button>
+                                    <button class="btn action-btn sell" onclick="manualTrade('sell')">
+                                        <i class="fa-solid fa-arrow-trend-down"></i> FORCE SELL / SHORT
+                                    </button>
+                                </div>
+                                <p class="notice"><i class="fa-solid fa-triangle-exclamation"></i> Manual trades respect
+                                    current "Dry Run" config.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: Config & Logs -->
+                    <div class="col-right">
+
+                        <!-- Configuration -->
+                        <div class="card config-card" id="settings-section">
+                            <div class="card-header">
+                                <h2><i class="fa-solid fa-gears"></i> Bot Configuration</h2>
+                            </div>
+                            <div class="card-body">
+                                <form id="config-form" onsubmit="return false;">
+                                    <div class="form-group">
+                                        <label for="symbol">Trading Symbol</label>
+                                        <div class="custom-select-wrapper" id="symbol-dropdown-wrapper">
+                                            <div class="custom-select-trigger" onclick="toggleSymbolDropdown()">
+                                                <div class="selected-value">
+                                                    <img id="selected-icon"
+                                                        src="https://assets.coincap.io/assets/icons/btc@2x.png"
+                                                        onerror="this.style.display='none'" alt="Coin">
+                                                    <span id="selected-text">Loading...</span>
+                                                </div>
+                                                <i class="fa-solid fa-chevron-down arrow"></i>
+                                            </div>
+                                            <div class="custom-options" id="symbol-options">
+                                                <div class="search-box">
+                                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                                    <input type="text" id="symbol-search"
+                                                        placeholder="Search Symbol (e.g. BTC)..."
+                                                        onkeyup="filterSymbols()">
+                                                </div>
+                                                <div class="options-list" id="options-list-container">
+                                                    <!-- Javascript will populate this -->
+                                                    <div class="option"
+                                                        style="justify-content:center; color:var(--text-muted);">Loading
+                                                        symbols...</div>
+                                                </div>
+                                            </div>
+                                            <input type="hidden" id="symbol" value="">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="product_type">Trading Mode</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-layer-group"></i>
+                                            <select id="product_type"
+                                                style="width: 100%; padding: 0.85rem 1rem 0.85rem 2.8rem; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: 0.75rem; color: #fff; appearance: none; cursor: pointer;">
+                                                <option value="USDT-FUTURES">Futures (USDT-M)</option>
+                                                <option value="SPOT">Spot Trading</option>
+                                            </select>
+                                            <i class="fa-solid fa-chevron-down" style="left: auto; right: 1rem;"></i>
+                                        </div>
+                                        <p class="field-desc"
+                                            style="margin-top: 0.4rem; font-size: 0.8rem; color: var(--text-muted);">
+                                            Select <b>Futures</b> to use Leverage. Select <b>Spot</b> for normal
+                                            buying/selling.
+                                        </p>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group half">
+                                            <label for="size">Buy Size (USDT)</label>
+                                            <div class="input-with-icon">
+                                                <i class="fa-solid fa-dollar-sign"></i>
+                                                <input id="size" type="number" step="0.1" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group half">
+                                            <label for="sell_size">Sell Size</label>
+                                            <div class="input-with-icon">
+                                                <i class="fa-solid fa-percent"></i>
+                                                <input id="sell_size" type="text" placeholder="ALL" />
+                                            </div>
+                                            <p class="field-desc"
+                                                style="font-size: 0.75rem; color: var(--warning); margin-top: 0.2rem;">
+                                                Provide Coin Amount or "ALL" (Not USDT)
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="leverage">Leverage (x)</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-xmark"></i>
+                                            <input id="leverage" type="number" />
+                                        </div>
+                                    </div>
+
+                                    <div class="toggles-container">
+                                        <div class="toggle-wrapper">
+                                            <div class="toggle-label">
+                                                <span>Enable Trading</span>
+                                                <small>Master switch</small>
+                                            </div>
+                                            <label class="switch">
+                                                <input id="enable" type="checkbox">
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </div>
+
+                                        <div class="toggle-wrapper">
+                                            <div class="toggle-label">
+                                                <span>Dry Run Mode</span>
+                                                <small>Simulate trades</small>
+                                            </div>
+                                            <label class="switch">
+                                                <input id="dry_run" type="checkbox">
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button id="save-btn" class="btn primary-btn" onclick="saveConfig()">
+                                            <i class="fa-solid fa-floppy-disk"></i> Save Config
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trade History -->
+                    <div class="card logs-card" id="logs-section" style="margin-top: 1.5rem;">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-clock-rotate-left"></i> Trade History</h2>
+                            <button class="icon-btn sm" onclick="loadLogs()"><i
+                                    class="fa-solid fa-rotate-right"></i></button>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-container">
+                                <table class="logs-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Sym</th>
+                                            <th>Type</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="trade-log-table">
+                                        <!-- JS Populated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+    </div>
+    </main>
+    </div>
+
+    <div id="toast-container"></div>
+    <!-- TradingView Widget Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script src="/static/dashboard.js"></script>
+</body>
+
+</html>
