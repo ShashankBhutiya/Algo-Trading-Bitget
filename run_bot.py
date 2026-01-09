@@ -54,11 +54,8 @@ def main():
         #     "file_handle": None
         # },
         "WebhookServer": {
-            # Use Gunicorn as a module to run production server
-            # -w 1: One worker (sufficient for webhook)
-            # -b 0.0.0.0:5000: Bind all IPs on port 5000
-            # --access-logfile -: Log to stdout (captured by our logger)
-            "file": ["-m", "gunicorn", "-w", "1", "-b", "0.0.0.0:5000", "--access-logfile", "-", "webhook_bot:app"], 
+            # Use direct execution for Windows compatibility (Gunicorn is Unix only)
+            "file": "webhook_bot.py", 
             "log": "logs/webhook_server.log", 
             "process": None,
             "file_handle": None

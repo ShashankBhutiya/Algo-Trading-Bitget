@@ -1,9 +1,13 @@
 requests
 websockets
 pandas
+requests
+websockets
+pandas
 numpy
 python-dotenv
 ta
 flask
 supabase
 gunicorn
+web3

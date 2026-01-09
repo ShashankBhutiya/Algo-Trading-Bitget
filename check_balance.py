@@ -1,24 +1,14 @@
-from core.bitget_client import BitgetClient
+from core.gmx_client import GMXClient
 import json
 
-def check_balances():
-    client = BitgetClient()
-    
-    print("--- Spot Wallet Assets ---")
-    spot_resp = client.get_spot_assets()
-    if spot_resp and spot_resp.get("code") == "00000":
-        data = spot_resp.get("data", [])
-        # Filter for non-zero
-        found = False
-        for asset in data:
-            available = float(asset.get("available", 0))
-            if available > 0:
-                print(f"Coin: {asset['coin']} | Available: {available} | Frozen: {asset.get('frozen', 0)}")
-                found = True
-        if not found:
-            print("No assets found in Spot wallet.")
-    else:
-        print(f"Error fetching spot assets: {spot_resp}")
+def check_bal():
+    client = GMXClient()
+    print("Fetching GMX Balances...")
+    try:
+        assets = client.get_spot_assets()
+        print(json.dumps(assets, indent=2))
+    except Exception as e:
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
-    check_balances()
+    check_bal()

@@ -1,11 +1,15 @@
-from core.bitget_client import BitgetClient
-import json
+from core.gmx_client import GMXClient
 
 def set_hedge():
-    client = BitgetClient()
-    print("Setting Hedge Mode...")
-    resp = client.set_position_mode("hedge_mode")
-    print(json.dumps(resp, indent=2))
+    print("--- GMX V2 Configuration ---")
+    print("GMX does not use 'One-way' vs 'Hedge' mode settings like Bitget.")
+    print("You can manage Longs and Shorts independently on GMX V2 markets.")
+    
+    client = GMXClient()
+    if client.account:
+        print(f"Client Active: {client.account.address}")
+    else:
+        print("Client in Read-Only Mode")
 
 if __name__ == "__main__":
     set_hedge()

@@ -1,25 +1,17 @@
-from core.bitget_client import BitgetClient
+from core.gmx_client import GMXClient
 import json
 
-def check():
-    client = BitgetClient()
-    # Check positions (might be empty if no open positions)
-    print("Checking Positions...")
-    positions = client.get_positions(symbol="BTCUSDT")
-    print(json.dumps(positions, indent=2))
-    
-    # We might also want to check something that returns account config, 
-    # but BitgetClient currently only has get_positions.
-    # get_positions returns the configuration if available? 
-    # Usually it returns a list of positions. 
-    # If list is not empty, we can see 'marginMode' and 'holdMode'.
-    
-    if positions:
-        print("\n--- Insight ---")
-        for p in positions:
-            print(f"Margin Mode: {p.get('marginMode')}")
-            print(f"Hold Mode: {p.get('holdMode')}") # Some APIs call it holdSide or similar
-            print(f"Side: {p.get('holdSide')}") 
+def check_mode():
+    client = GMXClient()
+    print("Checking Account Mode (GMX)...")
+    # GMX V2 doesn't have "Hedge Mode" toggles like CEXs, 
+    # but we can check if we can connect and fetch positions.
+    try:
+        positions = client.get_positions()
+        print(f"Connection Successful. Active Positions: {len(positions)}")
+        print("GMX uses isolated markets generally. No specific 'Hedge Mode' setting required.")
+    except Exception as e:
+        print(f"Error checking GMX: {e}")
 
 if __name__ == "__main__":
-    check()
+    check_mode()

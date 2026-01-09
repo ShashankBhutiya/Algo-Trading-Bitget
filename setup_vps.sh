@@ -33,6 +33,11 @@ if [ -f "bitget_bot.service" ]; then
     # Use sed to replace the placeholder path with actual current path
     sed -i "s|WorkingDirectory=/root/bitget_bot|WorkingDirectory=$CUR_DIR|g" bitget_bot.service
     
+    # Update User to current user
+    CUR_USER=$(whoami)
+    echo "    > Setting User to $CUR_USER"
+    sed -i "s|User=root|User=$CUR_USER|g" bitget_bot.service
+    
     # Update ExecStart to look for python3 in standard location, or venv if used.
     # We assume 'python3' is in path.
     # sed -i "s|ExecStart=/usr/bin/python3|ExecStart=$(which python3)|g" bitget_bot.service

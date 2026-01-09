@@ -1,0 +1,20 @@
+--- Single Order Execution ---
+Symbol: BTCUSDT
+Side:   open_long
+Size:   0.001
+Margin: None
+Dry Run: False
+------------------------------
+DEBUG: Sending Body: {
+  "symbol": "BTCUSDT",
+  "productType": "USDT-FUTURES",
+  "marginCoin": "USDT",
+  "orderType": "market",
+  "side": "buy",
+  "size": "0.001",
+  "tradeSide": "open"
+}
+API Response: {'code': '400172', 'msg': 'The margin mode cannot be empty', 'requestTime': 1766147615179, 'data': None}
+Order placement FAILED: The margin mode cannot be empty
+HINT: Error '400172: side mismatch' usually means your account is in ONE-WAY MODE but you tried to use HEDGE MODE keys (open_long/open_short).
+Try using '--side buy' or '--side sell' instead, OR switch your Bitget account to Hedge Mode.

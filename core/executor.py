@@ -61,6 +61,13 @@ def execute_trade(client, signal, symbol="BTCUSDT", product_type="USDT-FUTURES",
     # Check if dry_run passed, else fallback to global (or just use passed arg)
     is_dry_run = dry_run or DRY_RUN
 
+    # Signal Translation (TradingView "buy"/"sell" -> "open_long"/"open_short")
+    if product_type.endswith("FUTURES") or product_type == "PERP":
+        if signal.lower() == "buy":
+            signal = "open_long"
+        elif signal.lower() == "sell":
+            signal = "open_short"
+
     # --- SAFETY GATES ---
     is_safe, reason = safety_manager.check_gates(symbol, signal, is_dry_run)
     if not is_safe:
@@ -174,6 +181,56 @@ def execute_trade(client, signal, symbol="BTCUSDT", product_type="USDT-FUTURES",
 
     desired_side = "long" if signal == "open_long" else "short"
 
+    # --- CLOSE ALL LOGIC ---
+    if signal == "close_all":
+        if is_dry_run:
+             print(f"[DRY RUN] Would CLOSE ALL positions for {symbol}")
+             return {"success": True, "status": "SIMULATED", "message": "Dry Run Close All"}
+        
+        try:
+            positions = client.get_positions(symbol)
+            if not positions:
+                return {"success": True, "status": "SKIPPED", "message": "No positions found"}
+            
+            closed_cnt = 0
+            for pos in positions:
+                # Based on core/position.py structure
+                p_size = float(pos.get("total", 0))
+                p_side = pos.get("holdSide") # long/short
+                
+                if p_size > 0:
+                     # Determine opposite side
+                     # To close LONG -> SELL
+                     # To close SHORT -> BUY
+                     close_side = "sell" if p_side == "long" else "buy"
+                     
+                     print(f"Executing CLOSE ALL: Closing {p_side} ({p_size}) with {close_side}")
+                     
+                     # Force size to string format if needed, simplistic approach
+                     # Ideally use precision formatting from logic below, but we'll try raw first or reuse helper?
+                     # Let's trust place_order_with_retry to handle basic strings
+                     
+                     resp = place_order_with_retry(
+                        client=client,
+                        symbol=symbol,
+                        side=close_side,
+                        size=str(p_size),
+                        product_type=product_type
+                     )
+                     print(f"Close Response: {resp}")
+                     closed_cnt += 1
+                     
+            if closed_cnt > 0:
+                 telegram_bot.send_message(f"📉 *Closed All Positions* for {symbol}")
+                 return {"success": True, "status": "FILLED", "message": f"Closed {closed_cnt} positions"}
+            else:
+                 return {"success": True, "status": "SKIPPED", "message": "No open positions"}
+                 
+        except Exception as ex:
+             print(f"Close All Error: {ex}")
+             return {"success": False, "status": "ERROR", "message": str(ex)}
+
+    # --- POSITION CHECK for OPEN ---
     if current_position == desired_side:
         print(f"[SKIP] Already in {current_position} position")
         return {"success": False, "status": "SKIPPED", "message": f"Already {desired_side}"}
@@ -273,14 +330,23 @@ def execute_trade(client, signal, symbol="BTCUSDT", product_type="USDT-FUTURES",
             # Re-implementing balance log call
             try:
                  assets = client.get_spot_assets()
-                 if assets and isinstance(assets, list):
+                 # Handle Bitget/GMX standardized response {'code':..., 'data': [...]}
+                 asset_data = []
+                 if isinstance(assets, dict):
+                     asset_data = assets.get("data", [])
+                 elif isinstance(assets, list):
+                     asset_data = assets
+
+                 if asset_data:
                      total = 0.0
                      breakdown = {}
-                     for a in assets:
-                         if a['coin'] == 'USDT': total += float(a.get('available', 0))
-                         breakdown[a['coin']] = float(a.get('available',0))
+                     for a in asset_data:
+                         if a.get('coin') == 'USDT': 
+                             total += float(a.get('available', 0))
+                         breakdown[a.get('coin')] = float(a.get('available',0))
                      supabase_manager.log_balance(total, breakdown)
-            except: 
+            except Exception as e: 
+                print(f"Balance Log Error: {e}")
                 pass
             return {"success": True, "status": "FILLED", "message": "Futures Trade Executed"}
         

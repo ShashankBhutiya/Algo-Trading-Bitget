@@ -32,7 +32,7 @@ class TelegramNotifier:
             payload = {
                 "chat_id": chat_id,
                 "text": text,
-                "parse_mode": "Markdown"
+                # "parse_mode": "Markdown" # Disabled to prevent 'Can't parse entities' errors during debug
             }
             resp = requests.post(url, json=payload, timeout=5)
             

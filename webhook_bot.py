@@ -2,7 +2,7 @@ import os
 import secrets
 from flask import Flask, request, jsonify, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
-from core.bitget_client import BitgetClient
+from core.gmx_client import GMXClient
 from core.executor import execute_trade
 # REPLACE local manager with Supabase manager
 from core.supabase_config_manager import supabase_manager 
@@ -16,8 +16,8 @@ app = Flask(__name__, static_folder='static')
 app.secret_key = os.getenv("FLASK_SECRET_KEY", secrets.token_hex(16)) # Secure session key
 DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD", "admin") # Default password if not set
 
-# Initialize the Bitget Client
-client = BitgetClient()
+# Initialize the GMX Client
+client = GMXClient()
 
 @app.before_request
 def require_login():
@@ -277,10 +277,17 @@ def snapshot_balance():
             pass # Ignore price fetch errors
 
         assets = client.get_spot_assets()
-        if assets and isinstance(assets, list):
+        # Handle dict response with 'data'
+        asset_list = []
+        if isinstance(assets, dict):
+            asset_list = assets.get('data', [])
+        elif isinstance(assets, list):
+            asset_list = assets
+
+        if asset_list:
             total_usdt = 0.0
             breakdown = {}
-            for asset in assets:
+            for asset in asset_list:
                 coin = asset.get('coin')
                 available = float(asset.get('available', 0))
                 # frozen = float(asset.get('frozen', 0)) # Ignored for now
@@ -371,11 +378,27 @@ def webhook():
     Uses 'core/supabase_config_manager.py' as the authoritative source.
     """
     try:
+        # --- DEBUG LOGGING START ---
+        print("\n=== INCOMING WEBHOOK ===")
+        print(f"Headers: {request.headers}")
+        raw_body = request.get_data(as_text=True)
+        print(f"Raw Body: {raw_body}")
+        # --- DEBUG LOGGING END ---
+
         data = request.json
         if not data:
-            return jsonify({"status": "error", "message": "Invalid JSON payload"}), 400
+            # Fallback: try to parse manual text if content-type was wrong
+            import json
+            try:
+                data = json.loads(raw_body)
+            except:
+                pass
+        
+        if not data:
+             print("❌ Error: No JSON data found in request")
+             return jsonify({"status": "error", "message": "Invalid JSON/No Info"}), 400
 
-        print(f"Received Webhook: {data}")
+        print(f"Parsed Payload: {data}")
 
         # 1. Load Dynamic Config (From Supabase)
         config = supabase_manager.get_config()
